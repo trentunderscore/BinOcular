@@ -1,11 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "mh5UMqIFpSc=",
+  "dgSpecHash": "Zn0UiPfdyrM=",
   "success": true,
-  "projectFilePath": "/Users/trent/Desktop/Code/BinOcular/backend/BinOcular.Api/BinOcular.Api.csproj",
+  "projectFilePath": "C:\\Users\\Flash\\src\\BinOcular\\backend\\BinOcular.Api\\BinOcular.Api.csproj",
   "expectedPackageFiles": [
-    "/Users/trent/.nuget/packages/microsoft.aspnetcore.openapi/10.0.11/microsoft.aspnetcore.openapi.10.0.11.nupkg.sha512",
-    "/Users/trent/.nuget/packages/microsoft.openapi/2.7.5/microsoft.openapi.2.7.5.nupkg.sha512"
+    "C:\\Users\\Flash\\.nuget\\packages\\microsoft.aspnetcore.openapi\\10.0.11\\microsoft.aspnetcore.openapi.10.0.11.nupkg.sha512",
+    "C:\\Users\\Flash\\.nuget\\packages\\microsoft.openapi\\2.7.5\\microsoft.openapi.2.7.5.nupkg.sha512"
   ],
   "logs": []
 }

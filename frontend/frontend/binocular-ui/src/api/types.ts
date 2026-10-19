@@ -1,0 +1,14 @@
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T | null;
+  error: ApiError | null;
+}
+
+export interface ApiError {
+  code: string;
+  message: string;
+}
+
+export interface Sha256Result {
+  sha256: string;
+}

@@ -8,7 +8,3 @@ export interface ApiError {
   code: string;
   message: string;
 }
-
-export interface Sha256Result {
-  sha256: string;
-}

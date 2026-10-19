@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BinOcular.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2f4260c5258b15652614a066468177fdaa27a760")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5447e83ffa736deec9da0bf27a2070bcc562bc7d")]
 [assembly: System.Reflection.AssemblyProductAttribute("BinOcular.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BinOcular.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

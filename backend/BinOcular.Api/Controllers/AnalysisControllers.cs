@@ -10,7 +10,9 @@ namespace BinOcular.Api.Controllers;
 [Route("api/analyses")]
 public sealed class AnalysesController(
     AppDbContext dbContext,
-    AnalysisFileStorage fileStorage) : ControllerBase
+    AnalysisFileStorage fileStorage,
+    FileHashService fileHashService,
+    AnalysisQueue queue) : ControllerBase
 {
     [HttpPost]
     [Consumes("multipart/form-data")]
@@ -28,6 +30,7 @@ public sealed class AnalysesController(
         }
 
         var originalFileName = Path.GetFileName(file.FileName);
+
         string storedFileName;
 
         try
@@ -47,36 +50,46 @@ public sealed class AnalysesController(
                 title: "File could not be saved.");
         }
 
-        var analysis = new AnalysisRecord
-        {
-            OriginalFileName = originalFileName,
-            StoredFileName = storedFileName,
-            Status = "Queued"
-        };
+        var savedPath = fileStorage.GetPath(storedFileName);
 
         try
         {
+            var sha256 = await fileHashService.ComputeSha256Async(
+                savedPath,
+                cancellationToken);
+
+            var analysis = new AnalysisRecord
+            {
+                OriginalFileName = originalFileName,
+                StoredFileName = storedFileName,
+                Sha256 = sha256,
+                Status = "Queued"
+            };
+
             dbContext.Analyses.Add(analysis);
             await dbContext.SaveChangesAsync(cancellationToken);
+            await queue.EnqueueAsync(
+    analysis.Id,
+    cancellationToken);
+
+            return Accepted(new
+            {
+                analysisId = analysis.Id,
+                fileName = analysis.OriginalFileName,
+                status = analysis.Status,
+                sha256 = analysis.Sha256,
+                createdAtUtc = analysis.CreatedAtUtc
+            });
         }
         catch
         {
-            var savedPath = fileStorage.GetPath(storedFileName);
-
             if (System.IO.File.Exists(savedPath))
                 System.IO.File.Delete(savedPath);
 
             throw;
         }
-
-        return Accepted(new
-        {
-            analysisId = analysis.Id,
-            fileName = analysis.OriginalFileName,
-            status = analysis.Status,
-            createdAtUtc = analysis.CreatedAtUtc
-        });
     }
+
 
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetAnalysis(

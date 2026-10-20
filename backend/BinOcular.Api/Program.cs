@@ -26,6 +26,9 @@ builder.Host.UseSerilog((context, configuration) =>
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=binocular.db"));
 
+builder.Services.AddSingleton<AnalysisQueue>();
+builder.Services.AddHostedService<AnalysisWorker>();
+builder.Services.AddScoped<FileHashService>();
 builder.Services.AddScoped<AnalysisFileStorage>();
 builder.Services.AddTransient<ToolRunner>();
 builder.Services.AddTransient<IAnalysisTool, DIETool>();

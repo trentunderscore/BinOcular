@@ -54,6 +54,36 @@ namespace BinOcular.Api.Migrations
 
                     b.ToTable("Analyses");
                 });
+
+            modelBuilder.Entity("BinOcular.Api.Models.AnalysisToolResult", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("AnalysisRecordId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("CompletedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ExitCode")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("StandardError")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("StandardOutput")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ToolName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ToolResults");
+                });
 #pragma warning restore 612, 618
         }
     }

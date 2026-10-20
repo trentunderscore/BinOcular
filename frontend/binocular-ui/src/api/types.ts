@@ -8,3 +8,11 @@ export interface ApiError {
   code: string;
   message: string;
 }
+
+export interface AnalysisResponse {
+  analysisId: string;
+  fileName: string;
+  status: string;
+  sha256: string;
+  createdAtUtc: string;
+}

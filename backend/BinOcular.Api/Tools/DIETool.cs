@@ -1,4 +1,5 @@
 using BinOcular.Api.Analysis;
+using BinOcular.Api.Data;
 using BinOcular.Api.Models;
 using Microsoft.Extensions.Logging;
 
@@ -20,7 +21,7 @@ public sealed class DIETool(
 
         var result = await toolRunner.RunAsync(
             "diec",
-            new[] { "-d", filePath },
+            new[] { "--deepscan", "--heuristicscan", "--verbose", "--entropy", "--info", "--json", filePath }, // Run DIE in JSON mode with the specified file
             cancellationToken);
 
         if (result.ExitCode != 0)
@@ -30,7 +31,6 @@ public sealed class DIETool(
                 result.ExitCode,
                 filePath);
         }
-
         return result;
     }
 }

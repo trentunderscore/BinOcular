@@ -8,4 +8,5 @@ public sealed class AppDbContext(
     : DbContext(options)
 {
     public DbSet<AnalysisRecord> Analyses => Set<AnalysisRecord>();
+    public DbSet<AnalysisToolResult> ToolResults => Set<AnalysisToolResult>();
 }

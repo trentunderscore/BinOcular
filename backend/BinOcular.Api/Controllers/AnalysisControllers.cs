@@ -114,4 +114,60 @@ public sealed class AnalysesController(
 
         return analysis is null ? NotFound() : Ok(analysis);
     }
+
+    // Delete an analysis and its associated file
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> DeleteAnalysis(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var analysis = await dbContext.Analyses
+            .FirstOrDefaultAsync(a => a.Id == id, cancellationToken);  
+
+        if (analysis is null)
+        {
+            return NotFound();
+        }
+
+        // Delete the associated file
+        var filePath = fileStorage.GetPath(analysis.StoredFileName);
+        if (System.IO.File.Exists(filePath))
+        {
+            System.IO.File.Delete(filePath);
+        }
+
+        dbContext.Analyses.Remove(analysis);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return NoContent();
+    }
+
+
+    // Delete all analyses and their associated files
+    [HttpDelete]
+    public async Task<IActionResult> DeleteAllAnalyses(
+        CancellationToken cancellationToken)
+    {
+        var analyses = await dbContext.Analyses.ToListAsync(cancellationToken); 
+
+        foreach (var analysis in analyses)
+        {
+            // Delete the associated file
+            var filePath = fileStorage.GetPath(analysis.StoredFileName);
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+        }
+
+        dbContext.Analyses.RemoveRange(analyses);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Delete all tool results as well
+        var toolResults = await dbContext.ToolResults.ToListAsync(cancellationToken);
+        dbContext.ToolResults.RemoveRange(toolResults);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return NoContent();
+    }
 }

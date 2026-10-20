@@ -1,5 +1,7 @@
 
 using BinOcular.Api.Data;
+using BinOcular.Api.Models;
+using BinOcular.Api.Analysis;
 using Microsoft.EntityFrameworkCore;
 
 namespace BinOcular.Api.Services;
@@ -18,7 +20,8 @@ public sealed class AnalysisWorker(
             {
                 await ProcessAnalysisAsync(analysisId, stoppingToken);
             }
-            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            catch (OperationCanceledException)
+                when (stoppingToken.IsCancellationRequested)
             {
                 break;
             }
@@ -41,6 +44,12 @@ public sealed class AnalysisWorker(
         var dbContext = scope.ServiceProvider
             .GetRequiredService<AppDbContext>();
 
+        var fileStorage = scope.ServiceProvider
+            .GetRequiredService<AnalysisFileStorage>();
+
+        var tools = scope.ServiceProvider
+            .GetServices<IAnalysisTool>();
+
         var analysis = await dbContext.Analyses
             .FirstOrDefaultAsync(
                 a => a.Id == analysisId,
@@ -56,23 +65,75 @@ public sealed class AnalysisWorker(
 
         analysis.Status = "Running";
         analysis.StartedAtUtc = DateTimeOffset.UtcNow;
+        analysis.Error = null;
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
+        var filePath = fileStorage.GetPath(analysis.StoredFileName);
+
+        try
+        {
+            if (!File.Exists(filePath))
+            {
+                throw new FileNotFoundException(
+                    "The uploaded file could not be found.",
+                    filePath);
+            }
+
+            var compatibleTools = tools
+                .Where(tool => tool.IsCompatible(filePath))
+                .ToList();
+
+            foreach (var tool in compatibleTools)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var result = await tool.AnalyzeAsync(
+                    filePath,
+                    cancellationToken);
+
+                dbContext.ToolResults.Add(new AnalysisToolResult
+                {
+                    AnalysisRecordId = analysis.Id,
+                    ToolName = result.Tool,
+                    ExitCode = result.ExitCode,
+                    StandardOutput = result.StandardOutput,
+                    StandardError = result.StandardError
+                });
+
+                await dbContext.SaveChangesAsync(cancellationToken);
+            }
+
+            analysis.Status = "Completed";
+        }
+        catch (OperationCanceledException)
+            when (cancellationToken.IsCancellationRequested)
+        {
+            analysis.Status = "Queued";
+            analysis.StartedAtUtc = null;
+
+            await dbContext.SaveChangesAsync(CancellationToken.None);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(
+                ex,
+                "Analysis {AnalysisId} failed",
+                analysis.Id);
+
+            analysis.Status = "Failed";
+            analysis.Error = ex.Message;
+        }
+        finally
+        {
+            analysis.CompletedAtUtc = DateTimeOffset.UtcNow;
+            await dbContext.SaveChangesAsync(CancellationToken.None);
+        }
+
         logger.LogInformation(
-            "Started analysis {AnalysisId} for {FileName}",
+            "Analysis {AnalysisId} finished with status {Status}",
             analysis.Id,
-            analysis.OriginalFileName);
-
-        // Actual analysis tools will be executed in the next step.
-
-        analysis.Status = "Completed";
-        analysis.CompletedAtUtc = DateTimeOffset.UtcNow;
-
-        await dbContext.SaveChangesAsync(cancellationToken);
-
-        logger.LogInformation(
-            "Completed analysis {AnalysisId}",
-            analysis.Id);
+            analysis.Status);
     }
 }

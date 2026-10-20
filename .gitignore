@@ -567,3 +567,9 @@ dist-ssr
 # Random 
 **/bin
 **/obj
+backend/BinOcular.Api/binocular.db
+backend/BinOcular.Api/binocular.db-shm
+backend/BinOcular.Api/binocular.db-wal
+
+# Remove bin under backend/BinOcular.Api/
+backend/BinOcular.Api/bin/

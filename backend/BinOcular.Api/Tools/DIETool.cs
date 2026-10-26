@@ -9,7 +9,7 @@ public sealed class DIETool(
     ToolRunner toolRunner,
     ILogger<DIETool> logger) : IAnalysisTool
 {
-    public string Name => "Dependency Walker (DIE) Tool";
+    public string Name => "Detect It Easy";
 
     public bool IsCompatible(string filePath) => true;
 

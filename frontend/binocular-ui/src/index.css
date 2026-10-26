@@ -1,2 +1,71 @@
 @import "tailwindcss";
 
+@theme {
+  /* Dark gray color palette with blue accents */
+  --color-background: #090a0f;
+  --color-foreground: #f8fafc;
+
+  --color-card: #11131c;
+  --color-card-foreground: #f8fafc;
+
+  --color-muted: #1c1f2e;
+  --color-muted-foreground: #94a3b8;
+
+  --color-border: #2b3044;
+  --color-input: #1c1f2e;
+
+  --color-primary: #3b82f6;
+  --color-primary-foreground: #ffffff;
+
+  --color-accent: #1e293b;
+  --color-accent-foreground: #60a5fa;
+
+  --color-destructive: #ef4444;
+  --color-ring: #3b82f6;
+}
+
+html,
+body {
+  overflow-x: hidden;
+}
+
+/* Firefox standard custom scrollbar properties */
+html,
+body {
+  scrollbar-width: thin;
+  scrollbar-color: #2b3044 transparent;
+}
+
+/* WebKit (Chrome, Edge, Safari) scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2b3044;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3b82f6;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Utility to completely hide scrollbar while preserving scroll functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+

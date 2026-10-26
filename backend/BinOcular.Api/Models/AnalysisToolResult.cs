@@ -15,6 +15,8 @@ public sealed class AnalysisToolResult
 
     public string? StandardError { get; set; }
 
+    public string? FormattedOutputJson { get; set; }
+
     public DateTimeOffset CompletedAtUtc { get; set; } =
         DateTimeOffset.UtcNow;
 }

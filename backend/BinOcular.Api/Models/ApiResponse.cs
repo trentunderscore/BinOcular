@@ -1,3 +1,5 @@
+namespace BinOcular.Api.Models;
+
 public sealed class ApiResponse<T>
 {
     public bool Success { get; set; } = true;

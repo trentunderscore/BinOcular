@@ -52,14 +52,25 @@ public sealed class ToolRunner(ILogger<ToolRunner> logger)
 
             return result;
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
-            logger.LogError(
+            logger.LogWarning(
                 ex,
-                "Failed to execute analysis tool {Tool}",
-                executable);
+                "Analysis tool executable '{Tool}' could not be started: {Message}",
+                executable,
+                ex.Message);
 
-            throw;
+            return new ToolResult
+            {
+                Tool = executable,
+                ExitCode = -1,
+                StandardOutput = string.Empty,
+                StandardError = $"Tool '{executable}' is not installed or could not be executed: {ex.Message}"
+            };
         }
     }
 }

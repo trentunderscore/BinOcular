@@ -1,8 +1,6 @@
-
-using BinOcular.Api.Analysis;
 using BinOcular.Api.Data;
+using BinOcular.Api.Extensions;
 using BinOcular.Api.Services;
-using BinOcular.Api.Tools;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -11,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 
+// Configure Serilog
 builder.Host.UseSerilog((context, configuration) =>
 {
     configuration
@@ -23,15 +22,29 @@ builder.Host.UseSerilog((context, configuration) =>
             retainedFileCountLimit: 7);
 });
 
+// Database
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=binocular.db"));
 
+// Storage & Worker Queue
 builder.Services.AddSingleton<AnalysisQueue>();
 builder.Services.AddHostedService<AnalysisWorker>();
 builder.Services.AddScoped<FileHashService>();
 builder.Services.AddScoped<AnalysisFileStorage>();
-builder.Services.AddTransient<ToolRunner>();
-builder.Services.AddTransient<IAnalysisTool, DIETool>();
+
+// Analysis Pipeline Tools & Formatters
+builder.Services.AddAnalysisPipeline();
+
+// CORS for Frontend
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173", "http://localhost:3000")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
 var app = builder.Build();
 
@@ -41,6 +54,8 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+app.UseCors("AllowFrontend");
 
 app.UseHttpsRedirection();
 

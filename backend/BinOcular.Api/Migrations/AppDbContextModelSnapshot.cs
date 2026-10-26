@@ -50,6 +50,10 @@ namespace BinOcular.Api.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.PrimitiveCollection<string>("Tags")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
                     b.ToTable("Analyses");
@@ -69,6 +73,9 @@ namespace BinOcular.Api.Migrations
 
                     b.Property<int>("ExitCode")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("FormattedOutputJson")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("StandardError")
                         .HasColumnType("TEXT");

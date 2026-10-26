@@ -4,6 +4,8 @@ public sealed class AnalysisRecord
 {
     public Guid Id { get; set; } = Guid.NewGuid();
 
+    public string[] Tags { get; set; } = Array.Empty<string>();
+
     public required string OriginalFileName { get; set; }
 
     public required string StoredFileName { get; set; }

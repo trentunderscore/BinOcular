@@ -1,0 +1,24 @@
+name: binocular
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: binocular-app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Data Source=/app/data/binocular.db
+    volumes:
+      - binocular_db:/app/data
+      - binocular_uploads:/app/App_Data/uploads
+      - binocular_logs:/app/logs
+
+volumes:
+  binocular_db:
+  binocular_uploads:
+  binocular_logs:

@@ -18,6 +18,11 @@ import {
   FiTrash2,
   FiRefreshCw,
   FiRadio,
+  FiHelpCircle,
+  FiGithub,
+  FiCommand,
+  FiX,
+  FiLayers,
 } from 'react-icons/fi';
 
 export default function App() {
@@ -40,6 +45,7 @@ export default function App() {
 
   const [selectedAnalysis, setSelectedAnalysis] = useState<AnalysisResponse | null>(null);
   const [isDeletingAll, setIsDeletingAll] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
 
   // Debounce search query so rapid typing does not spam the API
   useEffect(() => {
@@ -48,6 +54,21 @@ export default function App() {
     }, 250);
     return () => clearTimeout(timer);
   }, [search]);
+
+  // Global keyboard shortcuts (e.g. ? for shortcut cheat sheet)
+  useEffect(() => {
+    const handleGlobalKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+      if (e.key === '?') {
+        e.preventDefault();
+        setShowShortcuts((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKey);
+    return () => window.removeEventListener('keydown', handleGlobalKey);
+  }, []);
 
   // Keep ref of active status for polling decision
   const hasActiveJobs = stats.running > 0 || stats.queued > 0;
@@ -152,7 +173,6 @@ export default function App() {
   }, [hasActiveJobs, refreshData]);
 
   const handleUploadSuccess = (_newAnalysis: AnalysisResponse) => {
-    // Return to page 1 and refresh
     setPage(1);
     refreshData(true);
   };
@@ -217,13 +237,13 @@ export default function App() {
                 </span>
               </div>
               <p className="text-xs text-muted-foreground hidden sm:block">
-                Automated Binary & Firmware Triage Dashboard
+                Automated Binary & Firmware Triage Workbench
               </p>
             </div>
           </div>
 
           {/* Right Header Actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3">
             {/* Live Polling Status Pill */}
             <div
               className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono border transition-colors ${
@@ -247,6 +267,26 @@ export default function App() {
               <FiRefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
 
+            {/* Shortcuts Guide Button */}
+            <button
+              onClick={() => setShowShortcuts(true)}
+              title="Keyboard Shortcuts (?)"
+              className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted border border-border/80 rounded-lg transition-colors"
+            >
+              <FiHelpCircle className="w-4 h-4" />
+            </button>
+
+            {/* GitHub Repo Link */}
+            <a
+              href="https://github.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="View on GitHub"
+              className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted border border-border/80 rounded-lg transition-colors hidden sm:flex items-center gap-1.5"
+            >
+              <FiGithub className="w-4 h-4" />
+            </a>
+
             {totalCount > 0 && (
               <button
                 onClick={handleDeleteAll}
@@ -263,19 +303,17 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* Top Summary Stats Bar */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        {/* KPI Summary Strip */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-card border border-border rounded-xl p-4 shadow-sm flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
-                Total Files
+                Total Submissions
               </p>
-              <h4 className="text-2xl font-bold text-foreground mt-1 font-mono">
-                {stats.total}
-              </h4>
+              <h4 className="text-2xl font-bold text-foreground mt-1 font-mono">{stats.total}</h4>
             </div>
-            <div className="p-3 bg-muted rounded-xl text-muted-foreground">
-              <FiActivity className="w-5 h-5" />
+            <div className="p-3 bg-muted text-muted-foreground rounded-xl">
+              <FiActivity className="w-5 h-5 text-primary" />
             </div>
           </div>
 
@@ -296,7 +334,7 @@ export default function App() {
           <div className="bg-card border border-border rounded-xl p-4 shadow-sm flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
-                Active / Queued
+                In Queue / Active
               </p>
               <h4 className="text-2xl font-bold text-blue-400 mt-1 font-mono">
                 {stats.running + stats.queued}
@@ -350,6 +388,93 @@ export default function App() {
           </div>
         </div>
       </main>
+
+      {/* Modern Cybersecurity Footer */}
+      <footer className="mt-auto border-t border-border bg-card/60 backdrop-blur-sm py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-foreground">BinOcular</span>
+            <span>•</span>
+            <span>Automated Binary & Firmware Triage Workbench</span>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <span className="font-mono text-[11px] text-muted-foreground/80 flex items-center gap-1">
+              <FiLayers className="w-3.5 h-3.5 text-primary" /> 15 Heuristic Engines Active
+            </span>
+            <span>•</span>
+            <button
+              onClick={() => setShowShortcuts(true)}
+              className="text-primary hover:underline flex items-center gap-1 font-medium"
+            >
+              Shortcuts <kbd className="px-1 py-0.5 rounded bg-muted border border-border text-[10px] font-mono">?</kbd>
+            </button>
+          </div>
+        </div>
+      </footer>
+
+      {/* Keyboard Shortcuts Cheat Sheet Modal */}
+      {showShortcuts && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150"
+          onClick={() => setShowShortcuts(false)}
+        >
+          <div
+            className="bg-card border border-border rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-border">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                  <FiCommand className="w-4 h-4" />
+                </div>
+                <h3 className="font-bold text-base text-foreground">Keyboard Navigation</h3>
+              </div>
+              <button
+                onClick={() => setShowShortcuts(false)}
+                className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg"
+              >
+                <FiX className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-2.5 text-xs">
+              <div className="flex items-center justify-between py-1.5 border-b border-border/40">
+                <span className="text-muted-foreground">Grid View (All 15 Tools)</span>
+                <kbd className="px-2 py-1 rounded bg-muted border border-border font-mono font-semibold text-foreground">1</kbd>
+              </div>
+              <div className="flex items-center justify-between py-1.5 border-b border-border/40">
+                <span className="text-muted-foreground">Split View (Directory + Focused)</span>
+                <kbd className="px-2 py-1 rounded bg-muted border border-border font-mono font-semibold text-foreground">2</kbd>
+              </div>
+              <div className="flex items-center justify-between py-1.5 border-b border-border/40">
+                <span className="text-muted-foreground">Strings Explorer (Search & Export)</span>
+                <kbd className="px-2 py-1 rounded bg-muted border border-border font-mono font-semibold text-foreground">3</kbd>
+              </div>
+              <div className="flex items-center justify-between py-1.5 border-b border-border/40">
+                <span className="text-muted-foreground">Raw Output Logs</span>
+                <kbd className="px-2 py-1 rounded bg-muted border border-border font-mono font-semibold text-foreground">4</kbd>
+              </div>
+              <div className="flex items-center justify-between py-1.5 border-b border-border/40">
+                <span className="text-muted-foreground">Toggle Fullscreen Mode</span>
+                <kbd className="px-2 py-1 rounded bg-muted border border-border font-mono font-semibold text-foreground">F</kbd>
+              </div>
+              <div className="flex items-center justify-between py-1.5 border-b border-border/40">
+                <span className="text-muted-foreground">Close Inspector / Modals</span>
+                <kbd className="px-2 py-1 rounded bg-muted border border-border font-mono font-semibold text-foreground">Esc</kbd>
+              </div>
+              <div className="flex items-center justify-between py-1.5">
+                <span className="text-muted-foreground">Toggle This Shortcuts Guide</span>
+                <kbd className="px-2 py-1 rounded bg-muted border border-border font-mono font-semibold text-foreground">?</kbd>
+              </div>
+            </div>
+
+            <p className="text-[11px] text-muted-foreground text-center pt-2 border-t border-border/40">
+              BinOcular Static Triage Workbench • Press <kbd className="font-mono">Esc</kbd> to close
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Detail Inspection Modal */}
       {selectedAnalysis && (

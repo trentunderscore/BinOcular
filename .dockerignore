@@ -1,0 +1,17 @@
+**/.git
+**/.github
+**/.vscode
+**/.idea
+**/bin/
+**/obj/
+**/node_modules/
+**/dist/
+**/App_Data/uploads/*
+!**/App_Data/uploads/.gitkeep
+*.db
+*.db-shm
+*.db-wal
+*.sqbpro
+logs/
+Library/
+.DS_Store

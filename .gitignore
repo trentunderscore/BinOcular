@@ -564,16 +564,25 @@ dist-ssr
 *.sln
 *.sw?
 
-# Random 
-**/bin
-**/obj
-backend/BinOcular.Api/binocular.db
-backend/BinOcular.Api/binocular.db-shm
-backend/BinOcular.Api/binocular.db-wal
+# Application data, uploads, and databases
+[Aa]pp_[Dd]ata/
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.sqbpro
 
-# Remove bin under backend/BinOcular.Api/
-backend/BinOcular.Api/bin/
-backend/BinOcular.Api/binocular.db
-backend/BinOcular.Api/binocular.db
-backend/BinOcular.Api/binocular.db-shm
-.gitignore
+# Build outputs & caches
+**/[Bb]in/
+**/[Oo]bj/
+**/bin/
+**/obj/
+Library/
+.DS_Store
+
+# Frontend
+**/node_modules/
+**/dist/
+**/dist-ssr/
+

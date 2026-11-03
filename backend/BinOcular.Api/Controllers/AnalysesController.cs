@@ -17,7 +17,7 @@ public sealed class AnalysesController(
 {
     [HttpPost]
     [Consumes("multipart/form-data")]
-    [RequestSizeLimit(100_000_000)]
+    [RequestSizeLimit(104_857_600)] // 100 MB
     public async Task<IActionResult> Upload(
         IFormFile? file,
         CancellationToken cancellationToken)
@@ -29,6 +29,40 @@ public sealed class AnalysesController(
                 error = "A non-empty file is required."
             });
         }
+
+        const long maxFileSize = 104_857_600; // 100 MB
+        if (file.Length > maxFileSize)
+        {
+            return BadRequest(new
+            {
+                error = $"File exceeds the maximum allowed size of 100 MB for demo (received {(file.Length / (1024.0 * 1024.0)):F2} MB)."
+            });
+        }
+
+        // Demo limit: Store only 1 file at a time. Clean up any previous analyses and their files on disk.
+        var previousAnalyses = await dbContext.Analyses.ToListAsync(cancellationToken);
+        foreach (var prev in previousAnalyses)
+        {
+            try
+            {
+                var oldPath = fileStorage.GetPath(prev.StoredFileName);
+                if (System.IO.File.Exists(oldPath))
+                {
+                    System.IO.File.Delete(oldPath);
+                }
+            }
+            catch
+            {
+                // Ignore deletion errors for missing files
+            }
+        }
+
+        dbContext.Analyses.RemoveRange(previousAnalyses);
+
+        var previousToolResults = await dbContext.ToolResults.ToListAsync(cancellationToken);
+        dbContext.ToolResults.RemoveRange(previousToolResults);
+
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         var originalFileName = Path.GetFileName(file.FileName);
 

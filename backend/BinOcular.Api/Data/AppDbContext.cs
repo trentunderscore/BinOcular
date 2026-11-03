@@ -1,5 +1,6 @@
 using BinOcular.Api.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace BinOcular.Api.Data;
@@ -10,6 +11,12 @@ public sealed class AppDbContext(
 {
     public DbSet<AnalysisRecord> Analyses => Set<AnalysisRecord>();
     public DbSet<AnalysisToolResult> ToolResults => Set<AnalysisToolResult>();
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        base.OnConfiguring(optionsBuilder);
+        optionsBuilder.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

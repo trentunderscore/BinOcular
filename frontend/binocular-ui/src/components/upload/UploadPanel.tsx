@@ -16,6 +16,9 @@ import {
   FiClock,
   FiGlobe,
   FiTarget,
+  FiChevronDown,
+  FiChevronUp,
+  FiInfo,
 } from 'react-icons/fi';
 
 interface UploadPanelProps {
@@ -31,6 +34,7 @@ export default function UploadPanel({ onUploadSuccess, className }: UploadPanelP
   const [uploadProgress, setUploadProgress] = useState<string | null>(null);
   const [lastUploaded, setLastUploaded] = useState<AnalysisResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showAllTools, setShowAllTools] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleProcessFile = async (file: File) => {
@@ -45,7 +49,7 @@ export default function UploadPanel({ onUploadSuccess, className }: UploadPanelP
     const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
     if (file.size > MAX_FILE_SIZE) {
       setErrorMessage(
-        `File exceeds the 100 MB limit (selected: ${(file.size / (1024 * 1024)).toFixed(1)} MB). Please select a file under 100 MB.`
+        `File exceeds the 100 MB demo limit (selected: ${(file.size / (1024 * 1024)).toFixed(1)} MB). Please select a file under 100 MB.`
       );
       if (fileInputRef.current) fileInputRef.current.value = '';
       return;
@@ -99,18 +103,101 @@ export default function UploadPanel({ onUploadSuccess, className }: UploadPanelP
     }
   };
 
+  const allTools = [
+    {
+      icon: <FiShield className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />,
+      title: 'File Format & Architecture',
+      desc: 'Inspects PE, ELF, Mach-O headers, architectures (x86_64, ARM64), and security mitigations (ASLR, DEP, PIE, CFG).',
+    },
+    {
+      icon: <FiActivity className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />,
+      title: 'Cryptographic Hashes & Entropy',
+      desc: 'Calculates MD5, SHA-1, SHA-256, SHA-512 digests and whole-file Shannon entropy to flag packing/encryption.',
+    },
+    {
+      icon: <FiAlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />,
+      title: 'Heuristic Threat & Anomaly Scorer',
+      desc: 'Computes composite threat score (0-100) weighing high entropy, evasion APIs, injection stubs, and droppers.',
+    },
+    {
+      icon: <FiTarget className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />,
+      title: 'MITRE ATT&CK Matrix Mapper',
+      desc: 'Maps static signatures to MITRE ATT&CK tactics & techniques (Defense Evasion, Persistence, Credential Access).',
+    },
+    {
+      icon: <FiGlobe className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />,
+      title: 'Network Endpoints & C2 Extractor',
+      desc: 'Discovers URLs, public IPv4/v6 endpoints, User-Agent strings, and known dynamic DNS / C2 beacon profiles.',
+    },
+    {
+      icon: <FiTerminal className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />,
+      title: 'Assembly & Shellcode Pattern Detector',
+      desc: 'Scans for NOP sleds, direct syscall stubs bypassing EDR hooks, PEB walking, and RDTSC anti-debug timing checks.',
+    },
+    {
+      icon: <FiLock className="w-4 h-4 text-indigo-400 flex-shrink-0 mt-0.5" />,
+      title: 'Cryptographic Algorithm Detector',
+      desc: 'Pinpoints AES S-Boxes, MD5 IVs, SHA-256 K constants, ChaCha20 magic words, and Base64 tables.',
+    },
+    {
+      icon: <FiKey className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" />,
+      title: 'Certificates, Signatures & Hardcoded Secrets',
+      desc: 'Validates Authenticode certificates and extracts leaked API keys (AWS, GitHub, Slack tokens, JWTs, PEM blocks).',
+    },
+    {
+      icon: <FiBox className="w-4 h-4 text-orange-400 flex-shrink-0 mt-0.5" />,
+      title: 'Embedded Assets & Secondary Droppers',
+      desc: 'Detects nested secondary PE executables (droppers), ZIP/GZIP archives, and embedded SQLite databases.',
+    },
+    {
+      icon: <FiClock className="w-4 h-4 text-teal-400 flex-shrink-0 mt-0.5" />,
+      title: 'Compiler & Timestamp Anomalies',
+      desc: 'Inspects COFF TimeDateStamp for time-stomping anomalies, MSVC Rich headers, and language runtimes (.NET, Go, Rust).',
+    },
+    {
+      icon: <FiLayers className="w-4 h-4 text-pink-400 flex-shrink-0 mt-0.5" />,
+      title: 'Binary Sections & RWX Permissions',
+      desc: 'Inspects section headers, raw/virtual sizes, memory permissions (flags dangerous RWX), and per-section entropy.',
+    },
+    {
+      icon: <FiShare2 className="w-4 h-4 text-cyan-400 flex-shrink-0 mt-0.5" />,
+      title: 'Imports & Library Dependencies',
+      desc: 'Maps linked DLLs / shared objects and infers capabilities (Networking, Registry, Crypto, Shell, Injection).',
+    },
+    {
+      icon: <FiTerminal className="w-4 h-4 text-accent-foreground flex-shrink-0 mt-0.5" />,
+      title: 'String Analysis & Threat IOCs',
+      desc: 'Extracts ASCII/Unicode strings and classifies URLs, IPs, commands, and process injection APIs.',
+    },
+  ];
+
+  const visibleTools = showAllTools ? allTools : allTools.slice(0, 3);
+
   return (
     <div className={`flex flex-col gap-4 ${className || ''}`}>
       {/* Upload Zone Card */}
       <div className="bg-card text-card-foreground border border-border rounded-xl p-5 shadow-sm flex flex-col gap-4">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <FiUploadCloud className="w-5 h-5 text-primary" />
-            Upload Binary
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
+              <FiUploadCloud className="w-5 h-5 text-primary" />
+              Upload Binary
+            </h2>
+            <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-blue-950/60 text-blue-400 border border-blue-800/60">
+              Demo Mode: 1 Active File
+            </span>
+          </div>
           <p className="text-xs text-muted-foreground mt-1">
             Submit a binary or executable image for static inspection and packer detection.
           </p>
+        </div>
+
+        {/* Demo Notice Banner */}
+        <div className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/40 border border-border/80 text-xs text-muted-foreground">
+          <FiInfo className="w-4 h-4 text-primary flex-shrink-0" />
+          <span>
+            <strong className="text-foreground">Demo Limit:</strong> Max file size is <strong>100 MB</strong>. Only 1 active sample is stored; new uploads replace previous analyses.
+          </span>
         </div>
 
         {/* Drag & Drop Area */}
@@ -154,7 +241,7 @@ export default function UploadPanel({ onUploadSuccess, className }: UploadPanelP
                 Click to browse or drag & drop binary
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                Max file size 100 MB
+                Max file size 100 MB • Single active file in demo
               </p>
 
               {/* Supported Extensions tags */}
@@ -198,144 +285,49 @@ export default function UploadPanel({ onUploadSuccess, className }: UploadPanelP
         )}
       </div>
 
-      {/* Capabilities & Information Card */}
+      {/* Capabilities & Information Card (No trapped inner scrollbar) */}
       <div className="bg-card text-card-foreground border border-border rounded-xl p-5 shadow-sm flex flex-col gap-3">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-          <FiShield className="w-4 h-4 text-primary" />
-          Automated Pipeline Tools
-        </h3>
-
-        <div className="space-y-2 text-xs text-muted-foreground max-h-[380px] overflow-y-auto pr-1">
-          <div className="flex items-start gap-2.5 bg-muted/30 p-2.5 rounded-lg border border-border/50">
-            <FiShield className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-            <div>
-              <span className="font-medium text-foreground">File Format & Architecture</span>
-              <p className="text-[11px] text-muted-foreground mt-0.5">
-                Inspects PE, ELF, Mach-O headers, architectures (x86_64, ARM64), and security mitigations (ASLR, DEP, PIE, CFG).
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-2.5 bg-muted/30 p-2.5 rounded-lg border border-border/50">
-            <FiActivity className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <span className="font-medium text-foreground">Cryptographic Hashes & Entropy</span>
-              <p className="text-[11px] text-muted-foreground mt-0.5">
-                Calculates MD5, SHA-1, SHA-256, SHA-512 digests and whole-file Shannon entropy to flag packing/encryption.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-2.5 bg-muted/30 p-2.5 rounded-lg border border-border/50">
-            <FiAlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <span className="font-medium text-foreground">Heuristic Threat & Anomaly Scorer</span>
-              <p className="text-[11px] text-muted-foreground mt-0.5">
-                Computes composite threat score (0-100) weighing high entropy, evasion APIs, injection stubs, and droppers.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-2.5 bg-muted/30 p-2.5 rounded-lg border border-border/50">
-            <FiTarget className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <span className="font-medium text-foreground">MITRE ATT&CK Matrix Mapper</span>
-              <p className="text-[11px] text-muted-foreground mt-0.5">
-                Maps static signatures to MITRE ATT&CK tactics & techniques (Defense Evasion, Persistence, Credential Access).
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-2.5 bg-muted/30 p-2.5 rounded-lg border border-border/50">
-            <FiGlobe className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <span className="font-medium text-foreground">Network Endpoints & C2 Extractor</span>
-              <p className="text-[11px] text-muted-foreground mt-0.5">
-                Discovers URLs, public IPv4/v6 endpoints, User-Agent strings, and known dynamic DNS / C2 beacon profiles.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-2.5 bg-muted/30 p-2.5 rounded-lg border border-border/50">
-            <FiTerminal className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <span className="font-medium text-foreground">Assembly & Shellcode Pattern Detector</span>
-              <p className="text-[11px] text-muted-foreground mt-0.5">
-                Scans for NOP sleds, direct syscall stubs bypassing EDR hooks, PEB walking, and RDTSC anti-debug timing checks.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-2.5 bg-muted/30 p-2.5 rounded-lg border border-border/50">
-            <FiLock className="w-4 h-4 text-indigo-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <span className="font-medium text-foreground">Cryptographic Algorithm Detector</span>
-              <p className="text-[11px] text-muted-foreground mt-0.5">
-                Pinpoints AES S-Boxes, MD5 IVs, SHA-256 K constants, ChaCha20 magic words, and Base64 tables.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-2.5 bg-muted/30 p-2.5 rounded-lg border border-border/50">
-            <FiKey className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <span className="font-medium text-foreground">Certificates, Signatures & Hardcoded Secrets</span>
-              <p className="text-[11px] text-muted-foreground mt-0.5">
-                Validates Authenticode certificates and extracts leaked API keys (AWS, GitHub, Slack tokens, JWTs, PEM blocks).
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-2.5 bg-muted/30 p-2.5 rounded-lg border border-border/50">
-            <FiBox className="w-4 h-4 text-orange-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <span className="font-medium text-foreground">Embedded Assets & Secondary Droppers</span>
-              <p className="text-[11px] text-muted-foreground mt-0.5">
-                Detects nested secondary PE executables (droppers), ZIP/GZIP archives, and embedded SQLite databases.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-2.5 bg-muted/30 p-2.5 rounded-lg border border-border/50">
-            <FiClock className="w-4 h-4 text-teal-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <span className="font-medium text-foreground">Compiler & Timestamp Anomalies</span>
-              <p className="text-[11px] text-muted-foreground mt-0.5">
-                Inspects COFF TimeDateStamp for time-stomping anomalies, MSVC Rich headers, and language runtimes (.NET, Go, Rust).
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-2.5 bg-muted/30 p-2.5 rounded-lg border border-border/50">
-            <FiLayers className="w-4 h-4 text-pink-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <span className="font-medium text-foreground">Binary Sections & RWX Permissions</span>
-              <p className="text-[11px] text-muted-foreground mt-0.5">
-                Inspects section headers, raw/virtual sizes, memory permissions (flags dangerous RWX), and per-section entropy.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-2.5 bg-muted/30 p-2.5 rounded-lg border border-border/50">
-            <FiShare2 className="w-4 h-4 text-cyan-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <span className="font-medium text-foreground">Imports & Library Dependencies</span>
-              <p className="text-[11px] text-muted-foreground mt-0.5">
-                Maps linked DLLs / shared objects and infers capabilities (Networking, Registry, Crypto, Shell, Injection).
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-2.5 bg-muted/30 p-2.5 rounded-lg border border-border/50">
-            <FiTerminal className="w-4 h-4 text-accent-foreground flex-shrink-0 mt-0.5" />
-            <div>
-              <span className="font-medium text-foreground">String Analysis & Threat IOCs</span>
-              <p className="text-[11px] text-muted-foreground mt-0.5">
-                Extracts ASCII/Unicode strings and classifies URLs, IPs, commands, and process injection APIs.
-              </p>
-            </div>
-          </div>
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+            <FiShield className="w-4 h-4 text-primary" />
+            Automated Pipeline Tools ({allTools.length})
+          </h3>
+          <button
+            onClick={() => setShowAllTools((prev) => !prev)}
+            className="text-xs text-primary hover:underline flex items-center gap-1 font-medium"
+          >
+            {showAllTools ? (
+              <>
+                Show Less <FiChevronUp className="w-3.5 h-3.5" />
+              </>
+            ) : (
+              <>
+                View All <FiChevronDown className="w-3.5 h-3.5" />
+              </>
+            )}
+          </button>
         </div>
+
+        <div className="space-y-2 text-xs text-muted-foreground">
+          {visibleTools.map((tool, idx) => (
+            <div key={idx} className="flex items-start gap-2.5 bg-muted/30 p-2.5 rounded-lg border border-border/50">
+              {tool.icon}
+              <div>
+                <span className="font-medium text-foreground">{tool.title}</span>
+                <p className="text-[11px] text-muted-foreground mt-0.5">{tool.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {!showAllTools && (
+          <button
+            onClick={() => setShowAllTools(true)}
+            className="w-full py-2 text-center text-xs text-muted-foreground hover:text-foreground bg-muted/20 hover:bg-muted/40 border border-border/60 rounded-lg transition-colors font-medium"
+          >
+            + {allTools.length - 3} more automated triage tools
+          </button>
+        )}
       </div>
     </div>
   );

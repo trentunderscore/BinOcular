@@ -21,7 +21,7 @@ public sealed class DIETool(
 
         var result = await toolRunner.RunAsync(
             "diec",
-            new[] { "--deepscan", "--heuristicscan", "--verbose", "--entropy", "--info", "--json", filePath }, // Run DIE in JSON mode with the specified file
+            new[] { "-j", "-d", "-e", filePath }, // Run DIE with deep scan, entropy, and JSON output
             cancellationToken);
 
         if (result.ExitCode != 0)

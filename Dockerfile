@@ -36,10 +36,16 @@ RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 
-# Install security utilities if available in base image
+# Install security utilities and Detect It Easy (diec)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     file \
     binutils \
+    wget \
+    ca-certificates \
+    && wget -q https://github.com/horsicq/DIE-engine/releases/download/3.21/die_3.21_Debian_12_amd64.deb -O /tmp/die.deb \
+    && (apt-get install -y --no-install-recommends /tmp/die.deb || apt-get install -y -f) \
+    && rm -f /tmp/die.deb \
+    && apt-get purge -y --auto-remove wget \
     && rm -rf /var/lib/apt/lists/*
 
 # Create persistent storage directories
@@ -49,7 +55,8 @@ COPY --from=backend-builder /app/publish .
 
 ENV ASPNETCORE_URLS=http://+:8080 \
     ASPNETCORE_ENVIRONMENT=Production \
-    ConnectionStrings__DefaultConnection="Data Source=/app/data/binocular.db"
+    ConnectionStrings__DefaultConnection="Data Source=/app/data/binocular.db" \
+    QT_QPA_PLATFORM=offscreen
 
 EXPOSE 8080
 

@@ -24,16 +24,17 @@
   --color-ring: #3b82f6;
 }
 
-html,
-body {
+/* Ensure only HTML handles root document scrollbar to eliminate double scrollbars */
+html {
   overflow-x: hidden;
-}
-
-/* Firefox standard custom scrollbar properties */
-html,
-body {
+  overflow-y: scroll;
   scrollbar-width: thin;
   scrollbar-color: #2b3044 transparent;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
 }
 
 /* WebKit (Chrome, Edge, Safari) scrollbars */
@@ -68,4 +69,3 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-
